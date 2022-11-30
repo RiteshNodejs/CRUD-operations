@@ -7,10 +7,8 @@ class authValidaton{
     {
         const header = req.headers.authorization;
         const token = header.replace("Bearer ", "")
-    
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    
             req.user = decoded
         }
         catch (err) {

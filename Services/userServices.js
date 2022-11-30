@@ -1,5 +1,5 @@
-import _user from "../Models/user.js";
-import ResponseHelper from "../helpers/responseHelper.js";
+import _user from "../Models/user";
+import ResponseHelper from "../helpers/responseHelper";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import MESSAGES from "../helpers/messageHelper";
@@ -7,34 +7,71 @@ import MESSAGES from "../helpers/messageHelper";
 
 class userServices {
     async adduser(req, res) {
-        const ExtUser = await _user.findOne({ email: req.body.email });
-        if (ExtUser){ 
-            let resPayload = {
-                message: MESSAGES.EMAIL_EXIST
-                
-            };
-            return ResponseHelper.error(res, resPayload)
-           
-        } 
-        else{
+        try {
+            const ExtUser = await _user.findOne({ email: req.body.email });
+            if (ExtUser) {
+                let resPayload = {
+                    message: MESSAGES.EMAIL_EXIST
+                };
+                return ResponseHelper.error(res, resPayload)
+            }
             let myUser = new _user(req.body);
-            myUser.save().then((value)=> {
+            myUser.save().then((value) => {
                 let resPayload = {
                     message: MESSAGES.REGISTER_SUCCESS,
-                    payload:value.details
+                    payload: value.details
                 };
                 return ResponseHelper.success(res, resPayload)
             })
         }
-                
+        catch (err) {
+            let resPayload = {
+                message: MESSAGES.SERVER_ERROR,
+                payload: {}
+            };
+            return ResponseHelper.error(res, resPayload)
+        }
     }
     async login(req, res) {
-        const ExtUser = await _user.findOne({ email: req.body.email });
-        if (!ExtUser) return res.status(400).send(MESSAGES.LOGIN_ERROR);
-        const validPassword = await bcrypt.compare(req.body.password, ExtUser.password);
-        if (!validPassword) return res.status(400).send(MESSAGES.LOGIN_ERROR);
-        const token = jwt.sign({ _id: ExtUser._id }, process.env.JWT_SECRET)
-        return res.status(200).send({ you: ExtUser, Token: token });
+        try {
+            const ExtUsers = await _user.findOne({ email: req.body.email });
+            if (!ExtUsers) {
+                let resPayload = {
+                    message: MESSAGES.LOGIN_ERROR,
+                    payload: {}
+                };
+                return ResponseHelper.error(res, resPayload)
+            } 
+            const ExtUser = await _user.findOne({ email: req.body.email });
+            if (ExtUser.deleted == true) {
+                let resPayload = {
+                    message: MESSAGES.USER_NOT_FOUND,
+                    payload: {},
+                };
+                return ResponseHelper.success(res, resPayload)
+            }
+            const validPassword = await bcrypt.compare(req.body.password, ExtUsers.password);
+            if (!validPassword) {
+                let resPayload = {
+                    message: MESSAGES.LOGIN_ERROR,
+                    payload: {}
+                };
+                return ResponseHelper.error(res, resPayload)
+            };
+            const token = jwt.sign({ _id: ExtUsers._id }, 'mytoken')
+            let resPayload = {
+                message: MESSAGES.LOGIN_SUCCESS,
+                payload: { token: token }
+            };
+            return ResponseHelper.success(res, resPayload)
+        }
+        catch (err) {
+            let resPayload = {
+                message: MESSAGES.SERVER_ERROR,
+                payload: {}
+            };
+            return ResponseHelper.error(res, resPayload)
+        }
     }
     async myprofile(req, res) {
         try {
@@ -48,47 +85,63 @@ class userServices {
         }
         catch (err) {
             let resPayload = {
-                message: err.message,
+                message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
             return ResponseHelper.error(res, resPayload)
         }
     }
     async updateProfile(req, res) {
-        
-            const { firstName, lastName, email, password } = req.body;
-            const salt = await bcrypt.genSalt(12)
-            const passwordhash = await bcrypt.hash(password, salt);
-            const Attributes = { firstName, lastName, email, password: passwordhash }
+        try {
+            const ExtUser = await _user.findOne({ email: req.body.email });
+            if (ExtUser) {
+                let resPayload = {
+                    message: MESSAGES.EMAIL_EXIST
+
+                };
+                return ResponseHelper.error(res, resPayload)
+            }
 
             const idUser = req.user._id;
-             _user.findByIdAndUpdate(idUser, Attributes,{new:true}).select("firstName lastName email")
-             .then((value)=> {
-                let resPayload = {
-                    message: MESSAGES.UPDATED_SUCCESS,
-                    payload:value
-                };
-                return ResponseHelper.success(res, resPayload)
-            }).catch(err => {
-                res.status(400).send(MESSAGES.UPDATED_ERROR)
-            })
-                
-      
-        
+            _user.findByIdAndUpdate(idUser, req.body, { new: true }).select("firstName lastName email")
+                .then((value) => {
+                    let resPayload = {
+                        message: MESSAGES.UPDATED_SUCCESS,
+                        payload: value
+                    };
+                    return ResponseHelper.success(res, resPayload)
+                })
+        }
+        catch (err) {
+            let resPayload = {
+                message: MESSAGES.SERVER_ERROR,
+                payload: {}
+            };
+            return ResponseHelper.error(res, resPayload)
+        }
     }
-    // async delete(req,res){
-        
-    //     try {
-    //         const idUser = req.user._id;
-    //         console.log(idUser)
-    //         await _user.findByIdAndUpdate(idUser,{ deleted: true });
-    //         res.status(200).send('deleted');
-    //       } catch (error) {
-    //         res.status(500).send('error while delete')
-    //       }
-    //     };
+    async delete(req, res) {
+        try {
+            const ExtUser = await _user.findOne({ _id: req.user._id });
+            if (ExtUser.deleted == false) {
+                const idUser = req.user._id;
+                await _user.findByIdAndUpdate(idUser, { deleted: true }) 
+                    let resPayload = {
+                        message: MESSAGES.DELETE_SUCCESS,
+                       
+                    };
+                    return ResponseHelper.success(res, resPayload)
+                
+            }
+            return res.send(MESSAGES.NO_RECORDS)
+
+        } catch (err) {
+            let resPayload = {
+                message: MESSAGES.SERVER_ERROR,
+                payload: {}
+            };
+            return ResponseHelper.error(res, resPayload)
+        }
+    };
 }
-
-
-
 export default new userServices;

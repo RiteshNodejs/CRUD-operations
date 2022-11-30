@@ -13,9 +13,7 @@ class ResponseHelper{
             message: data.message,
             payload: data.payload
         }
-        console.log(statusCode)
         res.status(statusCode).send(resPayload);
-
     }
 }
 export default new ResponseHelper;
