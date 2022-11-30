@@ -17,19 +17,13 @@ const userSchema = new Schema({
     password:{
         type:String,
         required:false,
-
     },
-    createdAt:{
-        type:String,
-        required:false
-    },
-    updatedAt:{
-        type:String,
-        required:false
+    deleted:{
+      type:Boolean,
+      default: false
     }
-
    
-})
+},{timestamps:true});
 userSchema.pre("save",async function(next){
   try{
     const salt=await bcrypt.genSalt(12)
@@ -42,5 +36,7 @@ userSchema.pre("save",async function(next){
 
   }
 })
+
+
 let _user =mongoose.model("_user",userSchema)
 export default _user;

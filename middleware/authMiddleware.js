@@ -1,24 +1,27 @@
 import validationHelper from "../helpers/validationhelper.js";
 import ResponseHelper from "../helpers/responseHelper.js";
-import  jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
-
-const authValidaton =(req,res,next)=>{
-    const header =req.headers.authorization;
-    const token = header.replace("Bearer ","")
+class authValidaton{
+    Validattion(req, res, next)
+    {
+        const header = req.headers.authorization;
+        const token = header.replace("Bearer ", "")
     
-    try{
-        const decoded= jwt.verify(token, 'mytoken')
-
-        req.user=decoded
-    }
-    catch(err){
-        let payload={
-            message:err.message,
-            payload:{}
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    
+            req.user = decoded
         }
-       return ResponseHelper.error(res,payload,401);
+        catch (err) {
+            let payload = {
+                message: err.message,
+                payload: {}
+            }
+            return ResponseHelper.error(res, payload, 401);
+        }
+        next();
     }
-    next();   
 }
-export default authValidaton;
+
+export default new authValidaton;
