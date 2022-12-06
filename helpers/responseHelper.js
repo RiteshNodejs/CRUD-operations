@@ -1,3 +1,4 @@
+
 class ResponseHelper{
     success(res,data,statuscode=200){
         let resPayload={
@@ -7,11 +8,11 @@ class ResponseHelper{
         }
         res.status(statuscode).send(resPayload)
     }
-    error(res,data,statusCode=200) {
+    error(res,data,statusCode=406) {
         let resPayload = {
             status: false,
             message: data.message,
-            payload: data.payload
+            payload:  data.payload
         }
         res.status(statusCode).send(resPayload);
     }

@@ -6,7 +6,7 @@ class joiMiddleware{
     let route =req.route.path;
     let method =req.method.toLowerCase();
        
-    let schema = validationHelper.Validate(route,method);
+    let schema = validationHelper.Validate(route,method);// validation helper for joi validation 
     const{error}=schema.validate(req.body,{abortEarly:false});
     if(error){    
       let errors = error.details.map((curr)=>{

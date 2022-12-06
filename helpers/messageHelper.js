@@ -1,5 +1,7 @@
 
    const MESSAGES={
+    DB_SUCCESS:'mongoose is connected',
+    DB_ERROR:"cant connect to database",
     LOGIN_ERROR : 'Invalid Credentials',
     LOGIN_SUCCESS:'Login successfully',
     PROFILE:"profile information",
@@ -11,7 +13,10 @@
     VALIDATION_ERROR:"validation error",
     DELETE_SUCCESS:"Successfully deleted ",
     USER_NOT_FOUND:"User not found",
-    SERVER_ERROR:"Unable to connect with database",
-    NO_RECORDS:"No record found"
+    SERVER_ERROR:"Something went worng",
+    NO_RECORDS:"No record found",
+    FILE_NOT_UPLOADED:"file not uploaded",
+    FILE_UPLOADED:"file uploaded successfully"
+    
 }
 export default MESSAGES

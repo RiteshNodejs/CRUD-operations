@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
+import _address, {addressSchema} from "./address";
+
 const userSchema = new Schema({
   firstName: {
     type: String,
@@ -21,7 +23,8 @@ const userSchema = new Schema({
   deleted: {
     type: Boolean,
     default: false
-  }
+  },
+  address: addressSchema
 
 }, { timestamps: true });
 
@@ -33,20 +36,24 @@ userSchema.pre("save", async function (next) {
     next();
   }
   catch {
-    next(error)
+   return next(error)
 
   }
 })
- userSchema.pre("findOneAndUpdate", async function (next) {
+ userSchema.pre('findOneAndUpdate', async function (next) {
   try {
-    if (this._update.password) {
-      const passwordhash = await bcrypt.hash(this._update.password, 10);
-      this._update.password = passwordhash;
+
+    if (this.password) {
+      
+      const passwordhash = await bcrypt.hash(this.password, 10);
+      this.password = passwordhash;
+      console.log("ni chal raha ")
     }
      next();
   }
-  catch {
-   return  next(error)
+  catch(err) {
+    console.log("err======",err)
+   return next(err)
 
   }
 });
