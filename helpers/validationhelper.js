@@ -14,7 +14,8 @@ class validationHelper {
             case 'post':
                 obj = {
                     '/register': userSchema,
-                    '/login': userSchemaLogin
+                    '/login': userSchemaLogin,
+                    '/addquotes':userQuotes
                 }
                 return obj[route]
                 break;
@@ -61,3 +62,7 @@ const userSchemaLogin = joi.object({
     email: joi.string().email().min(5).max(50).trim(true).required(),
     password: joi.string().min(5).max(25).trim(true).required()
 });
+const userQuotes=joi.object({
+    title:joi.string().trim().min(2).max(100).required(),
+    by:joi.string().trim().min(2).max(20).required()
+})

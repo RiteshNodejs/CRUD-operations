@@ -16,7 +16,8 @@
     SERVER_ERROR:"Something went worng",
     NO_RECORDS:"No record found",
     FILE_NOT_UPLOADED:"file not uploaded",
-    FILE_UPLOADED:"file uploaded successfully"
+    FILE_UPLOADED:"file uploaded successfully",
+    QUOTS_SUCCESS:"Successfully added"
     
 }
 export default MESSAGES

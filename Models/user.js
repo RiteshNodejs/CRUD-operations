@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
-import _address, {addressSchema} from "./address";
+import  {addressSchema} from "./address";
+import Quots from "./quotes";
 
 const userSchema = new Schema({
   firstName: {
@@ -24,8 +25,8 @@ const userSchema = new Schema({
     type: Boolean,
     default: false
   },
-  address: addressSchema
-
+  address: addressSchema,
+  
 }, { timestamps: true });
 
 userSchema.pre("save", async function (next) {
