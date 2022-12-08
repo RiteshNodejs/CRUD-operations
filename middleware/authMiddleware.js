@@ -4,11 +4,12 @@ import jwt from "jsonwebtoken";
 
 class authValidaton{
     Validattion(req, res, next)
-    {
+    { 
         const header = req.headers.authorization;
         const token = header.replace("Bearer ", "")
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET)
+          
             req.user = decoded
         }
         catch (err) {

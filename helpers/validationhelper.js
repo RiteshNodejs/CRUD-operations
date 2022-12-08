@@ -63,6 +63,6 @@ const userSchemaLogin = joi.object({
     password: joi.string().min(5).max(25).trim(true).required()
 });
 const userQuotes=joi.object({
-    title:joi.string().trim().min(2).max(100).required(),
-    by:joi.string().trim().min(2).max(20).required()
+    title:joi.string().trim().min(2).max(100).required()
+  
 })

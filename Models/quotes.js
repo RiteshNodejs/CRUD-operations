@@ -1,21 +1,15 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
-import _user from "./user";
+import User from "./user";
 const quotesSchema = new Schema({
     title: {
       type: String,
       required: true
     },
-    by: {
-      type: String,
-      required: true,
-    },
-    userId:{type:Schema.Types.ObjectId,ref: '_user'}
-    // userId:{
-    //     type:String,
-    //     require:true
-    // }
-    
+    userId:{
+      type:Schema.Types.ObjectId,
+      ref: 'dbUser'
+    }    
   }, { timestamps: true });
 
   let Quotes = mongoose.model("quots",quotesSchema);

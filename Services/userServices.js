@@ -1,4 +1,4 @@
-import _user from "../Models/user";
+import User from "../Models/user";
 import ResponseHelper from "../helpers/responseHelper";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -6,11 +6,10 @@ import MESSAGES from "../helpers/messageHelper";
 import upload from "../helpers/multerHelper";
 import Quotes from "../Models/quotes";
 
-
 class userServices {
     async addUser(req, res) {
         try {
-            const ExtUser = await _user.findOne({ email: req.body.email });
+            const ExtUser = await User.findOne({ email: req.body.email });
             if (ExtUser) {
                 let resPayload = {
                     message: MESSAGES.EMAIL_EXIST
@@ -18,7 +17,7 @@ class userServices {
                 return ResponseHelper.error(res, resPayload)
             }
 
-            let myUser = new _user(req.body);
+            let myUser = new User(req.body);
             // let myaddrsss= new Address(req.body);
             myUser.save().then((value) => {
                 let resPayload = {
@@ -38,7 +37,7 @@ class userServices {
     }
     async login(req, res) {
         try {
-            const ExtUser = await _user.findOne({ email: req.body.email });
+            const ExtUser = await User.findOne({ email: req.body.email });
             if (!ExtUser) {
                 let resPayload = {
                     message: MESSAGES.LOGIN_ERROR,
@@ -79,7 +78,7 @@ class userServices {
     async myprofile(req, res) {
         try {
             const idUser = req.user._id;
-            const user = await _user.findById(idUser)
+            const user = await User.findById(idUser)
             const userAddress = {
                 houseNo: user.address.houseNo,
                 city: user.address.city,
@@ -110,7 +109,7 @@ class userServices {
     async updateProfile(req, res) {
         try {
             const idUser = req.user._id;
-            const extUser = await _user.findOne({ email: req.body.email, _id: { $ne: idUser } }).lean();
+            const extUser = await User.findOne({ email: req.body.email, _id: { $ne: idUser } }).lean();
             //$ne selects the documents where the value of the field is not equal to the specified value. This includes documents that do not contain the field.
             //   if(extUser.id!=idUser) ->also working 
             if (extUser) {
@@ -119,7 +118,7 @@ class userServices {
                 };
                 return ResponseHelper.error(res, resPayload)
             }
-            const updatedUser = await _user.findByIdAndUpdate(req.user._id, req.body, { new: true }).select("firstName lastName email");
+            const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, { new: true }).select("firstName lastName email");
             console.log("updated user", updatedUser)
             let resPayload = {
                 message: MESSAGES.UPDATED_SUCCESS,
@@ -137,10 +136,10 @@ class userServices {
     }
     async delete(req, res) {
         try {
-            const ExtUser = await _user.findOne({ _id: req.user._id });
+            const ExtUser = await User.findOne({ _id: req.user._id });
             if (ExtUser.deleted == false) {
                 const idUser = req.user._id;
-                await _user.findByIdAndUpdate(idUser, { deleted: true })
+                await User.findByIdAndUpdate(idUser, { deleted: true })
                 let resPayload = {
                     message: MESSAGES.DELETE_SUCCESS,
                 };
@@ -174,6 +173,7 @@ class userServices {
     async addquotes(req, res) {
         try {
             const idUser = req.user._id;
+            
 
             let attribute = {
                 title: req.body.title,
@@ -207,23 +207,21 @@ class userServices {
     async userQuots(req, res) {
         try{
             const idUser = req.user._id;
-            const user = await _user.findById(idUser)
-            console.log(user._id)
-
-
-            const findQuote =await Quotes.find({userId:user._id}).lean()
-            const findQuotes= findQuote.map((value)=>{
-                let title;
-                let by;
-                return {title :value.title,by:value.by}
-                
-              })
-
+            const user = await User.findById(idUser,{_id:0,firstName:1})
+            const findQuote =await Quotes.find({userId:idUser,},
+                {_id:0,title:1,})
+            // const findQuotes= findQuote.map((value)=>{
+            //     return {title :value.title,by:value.by}    
+            //   })
+            
             const finalUser = {
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                qoutes:findQuotes
+              
+                // firstName: user.firstName,
+                // lastName: user.lastName,
+                // email: user.email,
+                by:user.firstName,
+                qoutes:findQuote,
+               
             }
             let resPayload = {
                 message: MESSAGES.PROFILE,
@@ -237,39 +235,33 @@ class userServices {
             };
             return ResponseHelper.error(res, resPayload, 500)
         }
-        // try {
-        //     let matchObj = {}
-        //     if (req.user._id) {
-        //         matchObj['quotes._id'] = mongoose.Types.Objectid(req.user._id)
-        //     }
-        //     let arg = {
-        //         query: [
-        //             {
-        //                 $match: { ...matchObj }
-        //             },
-        //             {
-        //                 $lookup: {
-        //                     from: "Quotes",
-        //                     localField: "quotes._id",
-        //                     foreignField: "_id",
-        //                     as: "allData"
-        //                 }
-        //             },
-        //             { $unwind: "$allData" }
-        //         ]
-        //     }
-        //     res.send('alldata')
-        // }
-        // catch (err) {
-        //     let resPayload = {
-        //         message: MESSAGES.SERVER_ERROR,
-        //         payload: {}
-        //     };
-        //     return ResponseHelper.error(res, resPayload, 500)
-        // }
-
+    }
+    async getallQuotes(req,res){
+        const allQuotes= await User.aggregate(
+            [
+                {
+                  '$lookup': {
+                    'from': 'quots', 
+                    'localField': '_id', 
+                    'foreignField': 'userId', 
+                    'as': 'quotes'
+                  }
+                }, {
+                  '$project': {
+                    '_id':0,
+                    'firstName': 1, 
+                    'quotes': {
+                      'title': 1
+                    }
+                  }
+                }
+              ]    
+     )
+        let resPayload = {
+            message: "Completed",
+            payload: allQuotes
+        }
+        ResponseHelper.success(res, resPayload)
     }
 }
-
-
 export default new userServices;

@@ -12,5 +12,6 @@ const Route=(app)=>{
     app.post("/image",userServices.multer);
     app.post("/addquotes",[authValidaton.Validattion,joiMiddleware.Middleware],userServices.addquotes);
     app.get('/userquotes',authValidaton.Validattion,userServices.userQuots);
+    app.get('/allQuotes',userServices.getallQuotes)
 }
 export default Route;

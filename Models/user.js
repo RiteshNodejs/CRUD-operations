@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import  {addressSchema} from "./address";
-import Quots from "./quotes";
 
 const userSchema = new Schema({
   firstName: {
@@ -61,5 +60,5 @@ userSchema.pre("save", async function (next) {
 
 
 
-let _user = mongoose.model("_user", userSchema)
-export default _user
+const User = mongoose.model("dbUser", userSchema)
+export default User

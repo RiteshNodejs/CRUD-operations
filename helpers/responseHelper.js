@@ -1,4 +1,3 @@
-
 class ResponseHelper{
     success(res,data,statuscode=200){
         let resPayload={
