@@ -1,9 +1,9 @@
 import User from "../Models/user";
-import ResponseHelper from "../helpers/responseHelper";
+import ResponseHelper from "../Helpers/responseHelper";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import MESSAGES from "../helpers/messageHelper";
-import upload from "../helpers/multerHelper";
+import MESSAGES from "../Helpers/messageHelper";
+import upload from "../Helpers/multerHelper";
 import Quotes from "../Models/quotes";
 
 class userServices {
@@ -18,7 +18,6 @@ class userServices {
             }
 
             let myUser = new User(req.body);
-            // let myaddrsss= new Address(req.body);
             myUser.save().then((value) => {
                 let resPayload = {
                     message: MESSAGES.REGISTER_SUCCESS,
@@ -119,7 +118,7 @@ class userServices {
                 return ResponseHelper.error(res, resPayload)
             }
             const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, { new: true }).select("firstName lastName email");
-            console.log("updated user", updatedUser)
+    
             let resPayload = {
                 message: MESSAGES.UPDATED_SUCCESS,
                 payload: updatedUser
@@ -173,11 +172,8 @@ class userServices {
     async addquotes(req, res) {
         try {
             const idUser = req.user._id;
-            
-
             let attribute = {
                 title: req.body.title,
-                by: req.body.by,
                 userId: idUser
             }
             let myQuotes = new Quotes(attribute);
@@ -205,24 +201,40 @@ class userServices {
         }
     };
     async userQuots(req, res) {
-        try{
+        try {
             const idUser = req.user._id;
-            const user = await User.findById(idUser,{_id:0,firstName:1})
-            const findQuote =await Quotes.find({userId:idUser,},
-                {_id:0,title:1,})
-            // const findQuotes= findQuote.map((value)=>{
-            //     return {title :value.title,by:value.by}    
-            //   })
-            
-            const finalUser = {
-              
-                // firstName: user.firstName,
-                // lastName: user.lastName,
-                // email: user.email,
-                by:user.firstName,
-                qoutes:findQuote,
-               
-            }
+            // const user = await User.findById(idUser, { _id: 0, firstName: 1 })
+            // const findQuote = await Quotes.find({ userId: idUser, },
+            //     { _id: 0, title: 1, })
+
+            // const finalUser = {
+            //     by: user.firstName,
+            //     qoutes: findQuote,
+            // }
+            const finalUser= await User.aggregate(
+            [
+                {
+                    '$match': {
+                      '_id': idUser
+                    }
+                  },
+                {
+                  '$lookup': {
+                    'from': 'quots', 
+                    'localField': '_id', 
+                    'foreignField': 'userId', 
+                    'as': 'quotes'
+                  }
+                },  {
+                  '$project': {
+                    '_id': 0, 
+                    'firstName': 1, 
+                    'quotes': {
+                      'title': 1
+                    }
+                  }
+                }
+              ])
             let resPayload = {
                 message: MESSAGES.PROFILE,
                 payload: finalUser
@@ -236,27 +248,27 @@ class userServices {
             return ResponseHelper.error(res, resPayload, 500)
         }
     }
-    async getallQuotes(req,res){
-        const allQuotes= await User.aggregate(
+    async getallQuotes(req, res) {
+        const allQuotes = await User.aggregate(
             [
                 {
-                  '$lookup': {
-                    'from': 'quots', 
-                    'localField': '_id', 
-                    'foreignField': 'userId', 
-                    'as': 'quotes'
-                  }
-                }, {
-                  '$project': {
-                    '_id':0,
-                    'firstName': 1, 
-                    'quotes': {
-                      'title': 1
+                    '$lookup': {
+                        'from': 'quots',
+                        'localField': '_id',
+                        'foreignField': 'userId',
+                        'as': 'quotes'
                     }
-                  }
+                }, {
+                    '$project': {
+                        '_id': 0,
+                        'firstName': 1,
+                        'quotes': {
+                            'title': 1
+                        }
+                    }
                 }
-              ]    
-     )
+            ]
+        )
         let resPayload = {
             message: "Completed",
             payload: allQuotes

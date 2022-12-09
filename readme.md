@@ -10,28 +10,28 @@
 * jsonwebtoken 8.5.1,
 * mongoose 6.7.3;
 
-## 1.Create a new directory/folder for project 
-## 2.Create a js file named as app.js
-## 3.initialize a new npm project
+### 1.Create a new directory/folder for project 
+### 2.Create a js file named as app.js
+### 3.initialize a new npm project
 * npm init -y  
 * npm i express
-## 4.import express in app.js 
-## 5.Setting Up the Server
+### 4.import express in app.js 
+### 5.Setting Up the Server
 * mongoose 6.7.3
 * mongodb v6.0.2
-## 6.Created Router folder for Route.js file
+### 6.Created Router folder for Route.js file
 * all routes are created in Route.js
-## 7.Middleware folder
-### in middleware folder we have 
+### 7.Middleware folder
+#### in middleware folder we have 
 * 1.authMiddleware , we implement jsonwebtoken (jwt) validation 
 * 2.JoiMiddleeare , we implement joi validation with  validation helper that is placed in helper folder.
-## 8.helper (folder) ->we place comman messages and validation in it 
+### 8.helper (folder) ->we place comman messages and validation in it 
 * 1.messagehelper.js- for res or error messages
 * 2.multervalidation.js- for images storage and validation
 * 3.response helper.js - for pre defined structure for response 
 * 4.validation helper.js- for joi validation structure for input validation 
 
-## CRUD API links & Working 
+### CRUD API links & Working 
 * #### Register user  post:(localhost:3000/register)
   * firstName:required,
   * lastName:required,
@@ -49,3 +49,11 @@
   * there is no required feild now for testing purpose
 * #### Delete   Delete:(localhost:3000/deleteUser)
   * token is used for delete user (soft delete )
+* #### Add quotes  post:(localhost:3000/addquotes)
+  * add token in  Auth/Bearer
+  * title feild is required
+* #### Get user quotes get:(localhost:3000/userquotes)
+  * add token in  Auth/Bearer
+* #### Get all users quotes get:(localhost:3000/allQuotes)
+
+

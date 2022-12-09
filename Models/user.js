@@ -2,8 +2,13 @@ import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import  {addressSchema} from "./address";
+import { nanoid } from "nanoid";
 
 const userSchema = new Schema({
+  _id:{
+    type:String,
+    default:()=> nanoid()
+  },
   firstName: {
     type: String,
     required: false

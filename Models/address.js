@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
 export const addressSchema= new Schema({
+  _id:false,
     houseNo: {
         type: String,
         required: false,
