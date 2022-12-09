@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import { nanoid } from "nanoid";
-import User from "./user";
 const quotesSchema = new Schema({
   _id:{
     type:String,

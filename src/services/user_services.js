@@ -1,20 +1,20 @@
-import User from "../Models/user";
-import ResponseHelper from "../Helpers/responseHelper";
+import User from "../models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import MESSAGES from "../Helpers/messageHelper";
-import upload from "../Helpers/multerHelper";
-import Quotes from "../Models/quotes";
+import MESSAGES from "../utils/helpers/message_helper";
+import upload from "../utils/helpers/multer_helper";
+import Quotes from "../models/quotes";
+import Helper from "../utils/Helpers";
 
-class userServices {
+class UserServices {
     async addUser(req, res) {
         try {
-            const ExtUser = await User.findOne({ email: req.body.email });
-            if (ExtUser) {
+            const extUser = await User.findOne({ email: req.body.email });
+            if (extUser) {
                 let resPayload = {
                     message: MESSAGES.EMAIL_EXIST
                 };
-                return ResponseHelper.error(res, resPayload)
+                return Helper.error(res, resPayload)
             }
 
             let myUser = new User(req.body);
@@ -23,7 +23,7 @@ class userServices {
                     message: MESSAGES.REGISTER_SUCCESS,
                     payload: value.details
                 };
-                return ResponseHelper.success(res, resPayload)
+                return Helper.success(res, resPayload)
             })
         }
         catch (err) {
@@ -31,50 +31,50 @@ class userServices {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     }
     async login(req, res) {
         try {
-            const ExtUser = await User.findOne({ email: req.body.email });
-            if (!ExtUser) {
+            const extUser = await User.findOne({ email: req.body.email });
+            if (!extUser) {
                 let resPayload = {
                     message: MESSAGES.LOGIN_ERROR,
                     payload: {}
                 };
-                return ResponseHelper.error(res, resPayload)
+                return Helper.error(res, resPayload)
             }
-            if (ExtUser.deleted == true) {
+            if (extUser.deleted == true) {
                 let resPayload = {
                     message: MESSAGES.USER_NOT_FOUND,
                     payload: {},
                 };
-                return ResponseHelper.success(res, resPayload)
+                return Helper.success(res, resPayload)
             }
-            const validPassword = await bcrypt.compare(req.body.password, ExtUser.password);
+            const validPassword = await bcrypt.compare(req.body.password, extUser.password);
             if (!validPassword) {
                 let resPayload = {
                     message: MESSAGES.LOGIN_ERROR,
                     payload: {}
                 };
-                return ResponseHelper.error(res, resPayload)
+                return Helper.error(res, resPayload)
             };
-            const token = jwt.sign({ _id: ExtUser._id }, process.env.JWT_SECRET, { expiresIn: "6000s" })
+            const token = jwt.sign({ _id: extUser._id }, process.env.JWT_SECRET, { expiresIn: "6000s" })
             let resPayload = {
                 message: MESSAGES.LOGIN_SUCCESS,
                 payload: { token: token }
             };
-            return ResponseHelper.success(res, resPayload)
+            return Helper.success(res, resPayload)
         }
         catch (err) {
             let resPayload = {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     }
-    async myprofile(req, res) {
+    async getProfile(req, res) {
         try {
             const idUser = req.user._id;
             const user = await User.findById(idUser)
@@ -85,7 +85,7 @@ class userServices {
                 country: user.address.country,
                 pincode: user.address.pincode
             }
-            const Nuser = {
+            const finalUser = {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
@@ -93,16 +93,16 @@ class userServices {
             }
             let resPayload = {
                 message: MESSAGES.PROFILE,
-                payload: Nuser
+                payload: finalUser
             };
-            ResponseHelper.success(res, resPayload)
+            Helper.success(res, resPayload)
         }
         catch (err) {
             let resPayload = {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     }
     async updateProfile(req, res) {
@@ -115,7 +115,7 @@ class userServices {
                 let resPayload = {
                     message: MESSAGES.EMAIL_EXIST
                 };
-                return ResponseHelper.error(res, resPayload)
+                return Helper.error(res, resPayload)
             }
             const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, { new: true }).select("firstName lastName email");
     
@@ -123,26 +123,26 @@ class userServices {
                 message: MESSAGES.UPDATED_SUCCESS,
                 payload: updatedUser
             };
-            return ResponseHelper.success(res, resPayload)
+            return Helper.success(res, resPayload)
         }
         catch {
             let resPayload = {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     }
     async delete(req, res) {
         try {
-            const ExtUser = await User.findOne({ _id: req.user._id });
-            if (ExtUser.deleted == false) {
+            const extUser = await User.findOne({ _id: req.user._id });
+            if (extUser.deleted == false) {
                 const idUser = req.user._id;
                 await User.findByIdAndUpdate(idUser, { deleted: true })
                 let resPayload = {
                     message: MESSAGES.DELETE_SUCCESS,
                 };
-                return ResponseHelper.success(res, resPayload)
+                return Helper.success(res, resPayload)
             }
             return res.send(MESSAGES.NO_RECORDS)
 
@@ -151,25 +151,39 @@ class userServices {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     }
-    multer(req, res, err) {
-
-        upload(req, res, (err) => {
-            if (err) {
-                res.status(500).send({
-                    message: MESSAGES.FILE_NOT_UPLOADED,
-                });
-            } else {
-                res.status(200).send({
-                    message: MESSAGES.FILE_UPLOADED,
-                });
-            }
-        });
+    multer(req, res) {
+        try{
+         upload(req, res, (err) => {
+                if (err) {
+                    let resPayload = {
+                        message: MESSAGES.FILE_NOT_UPLOADED,
+                        payload: {}
+                    };
+                    return Helper.error(res, resPayload) 
+                    
+                } else {
+                        let resPayload = {
+                            message: MESSAGES.FILE_UPLOADED,
+                            payload: {}
+                        };
+                        return Helper.success(res, resPayload)    
+                }
+            });
+        }
+        catch(err){
+            let resPayload = {
+                message: MESSAGES.SERVER_ERROR,
+                payload: {}
+            };
+            return Helper.error(res, resPayload, 500)
+        }
+  
 
     };
-    async addquotes(req, res) {
+    async addQuotes(req, res) {
         try {
             const idUser = req.user._id;
             let attribute = {
@@ -183,13 +197,13 @@ class userServices {
                     message: MESSAGES.QUOTS_SUCCESS,
                     payload: value.title
                 };
-                return ResponseHelper.success(res, resPayload)
+                return Helper.success(res, resPayload)
             }).catch((err) => {
                 let resPayload = {
                     message: err,
                     payload: {}
                 };
-                return ResponseHelper.error(res, resPayload)
+                return Helper.error(res, resPayload)
             })
         }
         catch (err) {
@@ -197,7 +211,7 @@ class userServices {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     };
     async userQuots(req, res) {
@@ -228,7 +242,7 @@ class userServices {
                 },  {
                   '$project': {
                     '_id': 0, 
-                    'firstName': 1, 
+                    'by': '$firstName', 
                     'quotes': {
                       'title': 1
                     }
@@ -239,16 +253,16 @@ class userServices {
                 message: MESSAGES.PROFILE,
                 payload: finalUser
             };
-            ResponseHelper.success(res, resPayload)
+            Helper.success(res, resPayload)
         } catch (err) {
             let resPayload = {
                 message: MESSAGES.SERVER_ERROR,
                 payload: {}
             };
-            return ResponseHelper.error(res, resPayload, 500)
+            return Helper.error(res, resPayload, 500)
         }
     }
-    async getallQuotes(req, res) {
+    async getAllQuotes(req, res) {
         const allQuotes = await User.aggregate(
             [
                 {
@@ -261,7 +275,7 @@ class userServices {
                 }, {
                     '$project': {
                         '_id': 0,
-                        'firstName': 1,
+                        'by': '$firstName',
                         'quotes': {
                             'title': 1
                         }
@@ -270,10 +284,10 @@ class userServices {
             ]
         )
         let resPayload = {
-            message: "Completed",
+            message: MESSAGES.GET_ALL_QUOTES,
             payload: allQuotes
         }
-        ResponseHelper.success(res, resPayload)
+        Helper.success(res, resPayload)
     }
 }
-export default new userServices;
+export default new UserServices;
